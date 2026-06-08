@@ -422,7 +422,8 @@ def CalculateMetrics(
                 filename='"{}"'.format(encoded_filename),
                 outputname='"{}"'.format(out_yuv),
             )
-            run_command_decoder = [run_command_decoder]
+            # Pass as string (not list) — with shell=True on Windows, wrapping in
+            # a list triggers list2cmdline which double-quotes the already-quoted paths.
 
         for metric in target_metric_list:
             run_command_vqmt += " " + metric
