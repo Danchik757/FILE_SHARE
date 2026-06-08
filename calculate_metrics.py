@@ -1409,8 +1409,8 @@ if __name__ == "__main__":
             "-metr vmaf over Y,U,V -set model_preset=vmaf_v061_neg",
         ],
         type=str,
-        nargs="+",
-        help="Metrics passed to MSU VQMT",
+        nargs="*",
+        help="Metrics passed to MSU VQMT (pass --metrics with no args to disable VQMT entirely)",
     )
     parser.add_argument(
         "-b",
