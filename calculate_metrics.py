@@ -337,6 +337,13 @@ def CalculateMetrics(
             shutil.copy(base_json_filename, result_json_filename)
             result_json = LoadJsonFromFile(result_json_filename)
 
+        # Skip VQMT re-run if it is already computed and matches requested metrics
+        vqmt_already_done = (
+            bool(metric_list)
+            and "vqmt" in result_json
+            and set(metric_list) <= set(result_json.get("metric_list", []))
+        )
+
         if local_encoded_filename is not None:
             shutil.copy(encoded_filename, local_encoded_filename)
             encoded_filename = local_encoded_filename
@@ -435,12 +442,12 @@ def CalculateMetrics(
                 ).returncode
                 decoder_end_time = time.time()
                 # Run VQMT sequentially after decoder (out_yuv file is ready)
-                if decoder_retcode == 0 and metric_list:
+                if decoder_retcode == 0 and metric_list and not vqmt_already_done:
                     vqmt_retcode = subprocess.run(
                         run_command_vqmt, shell=True, cwd=MSU_VQMT_PATH
                     ).returncode
                 elif decoder_retcode == 0:
-                    vqmt_retcode = 0  # no VQMT requested — treat as success
+                    vqmt_retcode = 0  # no VQMT requested, or VQMT already in JSON
                 # Compute torch perceptual metrics while out_yuv still exists (before finally deletes it)
                 if torch_metric_list and decoder_retcode == 0 and os.path.exists(out_yuv):
                     try:
@@ -532,35 +539,38 @@ def CalculateMetrics(
 
         # Save VQMT results
         if metric_list:
-            try:
-                vqmt_scores = LoadJsonFromFile(vqmt_json_filename)
-            except:
-                print("Error load json {}".format(vqmt_json_filename))
-                return (
-                    result,
-                    decoding_speed_bps,
-                    copy_speed_bps,
-                    decompress_speed_bps,
-                    decoding_speed_fps,
-                )
-            finally:
-                try:
-                    os.remove(vqmt_json_filename)
-                except:
-                    print("Can't remove {}".format(vqmt_json_filename))
-            if len(vqmt_scores["values"]) == yuv_info["length"]:
-                result_json["vqmt"] = vqmt_scores
-                result_json["metric_list"] = metric_list
-                result = True
+            if vqmt_already_done:
+                result = True  # VQMT data already loaded in result_json above
             else:
-                print(
-                    "Error for {} (file {}): expected len: {}, got {}".format(
-                        input_yuv,
-                        vqmt_json_filename,
-                        yuv_info["length"],
-                        len(vqmt_scores["values"]),
+                try:
+                    vqmt_scores = LoadJsonFromFile(vqmt_json_filename)
+                except:
+                    print("Error load json {}".format(vqmt_json_filename))
+                    return (
+                        result,
+                        decoding_speed_bps,
+                        copy_speed_bps,
+                        decompress_speed_bps,
+                        decoding_speed_fps,
                     )
-                )
+                finally:
+                    try:
+                        os.remove(vqmt_json_filename)
+                    except:
+                        print("Can't remove {}".format(vqmt_json_filename))
+                if len(vqmt_scores["values"]) == yuv_info["length"]:
+                    result_json["vqmt"] = vqmt_scores
+                    result_json["metric_list"] = metric_list
+                    result = True
+                else:
+                    print(
+                        "Error for {} (file {}): expected len: {}, got {}".format(
+                            input_yuv,
+                            vqmt_json_filename,
+                            yuv_info["length"],
+                            len(vqmt_scores["values"]),
+                        )
+                    )
 
         # Save torch results
         if _torch_scores:
