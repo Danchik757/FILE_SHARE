@@ -290,8 +290,9 @@ def _compute_torch_metrics(ref_yuv, dist_yuv, yuv_info, torch_metric_list, torch
 
     # Iterate frames
     frame_scores = {n: [] for n in models}
+    desc = "torch [{}]".format("+".join(models.keys()))
     with open(ref_yuv, "rb") as rf, open(dist_yuv, "rb") as df:
-        for _ in range(n_frames):
+        for _ in tqdm(range(n_frames), desc=desc, unit="fr", leave=True):
             rt = _read_yuv_frame_tensor(rf, width, height, pix_fmt)
             dt = _read_yuv_frame_tensor(df, width, height, pix_fmt)
             with torch.no_grad():
