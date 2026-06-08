@@ -752,12 +752,15 @@ def main(args):
                         try:
                             tmp_jf = LoadJsonFromFile(result_json_filename)
                             vqmt_done = (
-                                "vqmt" in tmp_jf.keys()
-                                and set(args.metrics) <= set(tmp_jf["metric_list"])
-                                and (
-                                    args.vqmt_version is None
-                                    or tmp_jf["vqmt"]["generator"]["program"].endswith(
-                                        args.vqmt_version
+                                not args.metrics
+                                or (
+                                    "vqmt" in tmp_jf.keys()
+                                    and set(args.metrics) <= set(tmp_jf["metric_list"])
+                                    and (
+                                        args.vqmt_version is None
+                                        or tmp_jf["vqmt"]["generator"]["program"].endswith(
+                                            args.vqmt_version
+                                        )
                                     )
                                 )
                             )
@@ -909,12 +912,15 @@ def main(args):
                         try:
                             tmp_jf = LoadJsonFromFile(result_json_filename)
                             vqmt_done = (
-                                "vqmt" in tmp_jf.keys()
-                                and set(args.metrics) <= set(tmp_jf["metric_list"])
-                                and (
-                                    args.vqmt_version is None
-                                    or tmp_jf["vqmt"]["generator"]["program"].endswith(
-                                        args.vqmt_version
+                                not args.metrics
+                                or (
+                                    "vqmt" in tmp_jf.keys()
+                                    and set(args.metrics) <= set(tmp_jf["metric_list"])
+                                    and (
+                                        args.vqmt_version is None
+                                        or tmp_jf["vqmt"]["generator"]["program"].endswith(
+                                            args.vqmt_version
+                                        )
                                     )
                                 )
                             )
