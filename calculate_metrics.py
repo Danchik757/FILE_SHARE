@@ -266,7 +266,7 @@ def _compute_torch_metrics(ref_yuv, dist_yuv, yuv_info, torch_metric_list, torch
 
     width   = yuv_info["width"]
     height  = yuv_info["height"]
-    pix_fmt = yuv_info["pix_fmt"]
+    pix_fmt = yuv_info["pix_fmt"].lower()
     n_frames = yuv_info["length"]
 
     # Load models
